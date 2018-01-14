@@ -3,13 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>Social Feed Widget</title>
+    <style>
+        #app .sfw-holder{
+            width: 400px;
+            margin: 10px auto;
+        }
+        #app .sfw-item-wrapper{
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #4AB3F4;
+            color: #ffffff;
+            border-radius: 5px;
+        }
+        #app .sfw-item-date{
+            display: inline-block;
+            width: 50%;
+            text-align: right;
+        }
+        #app .sfw-item-author{
+            display: inline-block;
+            width: 49%;
+        }
+    </style>
 </head>
 <body>
-<div id="App"></div>
+<div id="app"></div>
 <script src="../src/sfw.js"></script>
 <script>
-    var bla = new SocialFeedWidget(
-        'App',
+    new SocialFeedWidget(
+        'app',
         'http://api.massrelevance.com/MassRelDemo/kindle.json',
         10,
         1000);
