@@ -52,26 +52,29 @@ SocialFeedWidget.prototype._init = function (url, postsNumber, updateInterval) {
      * @param {string} res
      */
     function updateData(url, items, interval, res) {
-            var tmpData = [];
-            try {
-                tmpData = JSON.parse(res);
-            } catch (e) {
-                console.log(e);
+        var tmpData = [];
+        try {
+            tmpData = JSON.parse(res);
+        } catch (e) {
+            console.log(e);
+        }
+        for (var i = 0; i < items.length; i++) {
+            var val = null;
+            if (tmpData[i] && tmpData[i].created_at && tmpData[i].text && tmpData[i].user && tmpData[i].user.name) {
+                val = {
+                    postDate: tmpData[i].created_at || '',
+                    authorName: tmpData[i].user.name || '',
+                    messageBody: tmpData[i].text || ''
+                };
             }
-            for (var i = 0; i < items.length; i++) {
-                var val = null;
-                if (tmpData[i] && tmpData[i].created_at && tmpData[i].text && tmpData[i].user && tmpData[i].user.name) {
-                    val = {
-                        postDate: tmpData[i].created_at || '',
-                        authorName: tmpData[i].user.name || '',
-                        messageBody: tmpData[i].text || ''
-                    };
-                }
-                items[i].setNewValue(val);
-            }
-            tmpData = null;
+            items[i].setNewValue(val);
+        }
+        tmpData = null;
+        res = null;
         setTimeout(_fetchData, interval, url, items, interval);
-        url = items = interval = res = null;
+        url = null;
+        items = null;
+        interval = null;
     }
 
     /***
@@ -150,7 +153,10 @@ SocialFeedWidget.prototype._initSocialItemInstance = function () {
 
     /***
      * Model setter
-     * @param {obj{postDate: string, authorName: string, messageBody:string}} val
+     * @param {object} val
+     * @param {string} val.postDate
+     * @param {string} val.authorName
+     * @param {string} val.messageBody
      */
     SocialItem.prototype.setNewValue = function (val) {
         if (val === null) {
@@ -167,7 +173,7 @@ SocialFeedWidget.prototype._initSocialItemInstance = function () {
             return;
         } else {
             var reformatDate = function (dateString) {
-                function formatTo00(number) {
+                var formatTo00 = function (number) {
                     var f = '' + number;
                     return f.length === 1 ? '0' + f : f;
                 }
