@@ -42,16 +42,18 @@ SocialFeedWidget.prototype._init = function (url, postsNumber, updateInterval) {
         content.appendChild(item.element);
     }
     this.container.appendChild(content);
-    _fetchData(this.url, this.items, this.updateInterval);
+    _fetchData(this.url, this.items, this.updateInterval, _fetchData, _updateData);
 
     /***
      * Update data in model
      * @param {string} url
      * @param {array} items
      * @param {number} interval
+     * @param {function} fetchCallback
+     * @param {function} updateDataCallback
      * @param {string} res
      */
-    function updateData(url, items, interval, res) {
+    function _updateData(url, items, interval, fetchCallback, updateDataCallback, res) {
         var tmpData = [];
         try {
             tmpData = JSON.parse(res);
@@ -71,10 +73,12 @@ SocialFeedWidget.prototype._init = function (url, postsNumber, updateInterval) {
         }
         tmpData = null;
         res = null;
-        setTimeout(_fetchData, interval, url, items, interval);
+        setTimeout(fetchCallback, interval, url, items, interval, fetchCallback, updateDataCallback);
         url = null;
         items = null;
         interval = null;
+        fetchCallback = null;
+        updateDataCallback = null;
     }
 
     /***
@@ -82,29 +86,31 @@ SocialFeedWidget.prototype._init = function (url, postsNumber, updateInterval) {
      * @param {string} url
      * @param {array} items
      * @param {number} interval
+     * @param {function} fetchCallback
+     * @param {function} updateDataCallback
      * @private
      */
-    function _fetchData(url, items, interval) {
+    function _fetchData(url, items, interval, fetchCallback, updateDataCallback) {
         var xhr = new XMLHttpRequest();
-        xhr.onload = function (url, items, interval) {
+        xhr.onload = function (url, items, interval, fetchCallback, updateDataCallback) {
             return function (e) {
                 var r = e.target;
                 if (r.readyState !== 4) return;
 
                 if (r.status === 200) {
-                    updateData(url, items, interval, r.response);
+                    updateDataCallback(url, items, interval, fetchCallback, updateDataCallback, r.response);
                     r.abort();
-                    url = items = interval = r = null;
+                    fetchCallback = updateDataCallback = url = items = interval = r = null;
                 }
             }
-        }(url, items, interval);
-        xhr.onerror = function (url, items, interval) {
+        }(url, items, interval, fetchCallback, updateDataCallback);
+        xhr.onerror = function (url, items, interval, fetchCallback, updateDataCallback) {
             return function errorWrapper(e) {
                 console.error(e);
-                setTimeout(_fetchData, interval, url, items, interval);
-                url = items = interval = null;
+                setTimeout(fetchCallback, interval, url, items, interval, fetchCallback, updateDataCallback);
+                fetchCallback = updateDataCallback = url = items = interval = null;
             }
-        }(url, items, interval);
+        }(url, items, interval, fetchCallback, updateDataCallback);
         xhr.open('GET', url + '?_=' + new Date().getTime(), true);
         xhr.send();
     }
